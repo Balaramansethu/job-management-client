@@ -1,0 +1,75 @@
+import React, { useEffect, useState } from "react"
+import JobCard from "../JobCard/JobCard"
+import jobService from "../../services/jobService"
+import useAppDataContext from "../../hooks/useAppDataContext"
+import LoadingComponent from "../LoadingComponent/LoadingComponent"
+import { toast } from "sonner"
+
+const JobBoard = () => {
+    const [isLoading, setIsLoading] = useState(true)
+    const { jobsData, setJobsData } = useAppDataContext()
+
+    useEffect(() => {
+        let isMounted = true
+        setIsLoading(true)
+
+        jobService
+            .getAllJobs()
+            .then((response) => {
+                if (isMounted) {
+                    setJobsData(response.data.data)
+                }
+            })
+            .catch((error) => {
+                if (!isMounted) return
+
+                const status = error.response?.status
+                const message =
+                    error.response?.data?.message ?? "An error occurred"
+
+                if (status === 500) {
+                    toast.error("Server error, please try again later")
+                } else if (status) {
+                    toast.error(`Error ${status}: ${message}`)
+                } else if (error.request) {
+                    toast.error(
+                        "Network error. Please check your connection and try again."
+                    )
+                } else {
+                    toast.error(
+                        "Unexpected error occurred. Please try again later."
+                    )
+                }
+            })
+            .finally(() => {
+                if (isMounted) setIsLoading(false)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    return (
+        <div className='container mx-auto px-4 py-8'>
+            {isLoading ? (
+    <LoadingComponent />
+) : Array.isArray(jobsData) && jobsData.length > 0 ? (
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+        {jobsData.map((job) => (
+            <div key={job._id}>
+                <JobCard job={job} />
+            </div>
+        ))}
+    </div>
+) : (
+    <p className='w-full text-center text-gray-600 text-lg'>
+        No jobs matched your current search. Try adjusting your filters or keywords to see more results.
+    </p>
+)}
+
+        </div>
+    )
+}
+
+export default JobBoard

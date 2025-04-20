@@ -1,10 +1,17 @@
-import React from "react"
+import { BrowserRouter as Router } from "react-router-dom"
+import AppRoutes from "./routes/AppRoutes"
+import { Toaster } from "sonner"
+import { AppDataContextProvider } from "./context/AppDataContext"
 
-const App = () => {
+const App = () => {    
+
     return (
-        <React.Fragment>
-            <div>This commit is to save folder structure</div>
-        </React.Fragment>
+        <AppDataContextProvider>
+            <Router>
+                <AppRoutes />
+                <Toaster richColors position="top-right"/>
+            </Router>
+        </AppDataContextProvider>
     )
 }
 
